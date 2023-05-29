@@ -1,0 +1,9 @@
+[tool.autoflake]
+check = true
+recursive = true
+in-place = true
+remove-all-unused-imports = true
+
+[tool.black]
+line-length = 140
+
