@@ -9,11 +9,7 @@ from splitwise.user import ExpenseUser
 from src.finman.expenses.base import BaseSingleExpense
 from src.finman.utils.transaction_types import TransactionType
 
-TRANS_ID = {
-    TransactionType.GROCERY: 12,
-    TransactionType.RESTAURANT: 13,
-    TransactionType.CAFFE: 13
-}
+TRANS_ID = {TransactionType.GROCERY: 12, TransactionType.RESTAURANT: 13, TransactionType.CAFFE: 13}
 
 
 class SwiseAdapter:

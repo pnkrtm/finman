@@ -47,6 +47,10 @@ class BaseSingleExpense:
     def category(self):
         return self._category
 
+    @abc.abstractmethod
+    def bank_name(self):
+        pass
+
 
 def parse_category(description: str):
     if re.search("(edeka)|(aldi)|(superissimo)", description, re.IGNORECASE):

@@ -20,3 +20,7 @@ class RevolutSingleExpense(BaseSingleExpense):
         self._amount = float(row_splited[-1][1:])
         self._description = " ".join(row_splited[3:-1])
         self._category = parse_category(self._description)
+
+    @property
+    def bank_name(self):
+        return "Revolut"
