@@ -1,5 +1,1 @@
-CURRENCY = {
-    '€': 'EUR',
-    '$': 'USD',
-    '£': 'GBP'
-}
+CURRENCY = {"€": "EUR", "$": "USD", "£": "GBP"}

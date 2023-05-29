@@ -1,7 +1,10 @@
 import abc
 import datetime
+import re
 
 import PyPDF2
+
+from src.finman.utils.transaction_types import TransactionType
 
 
 class BaseSingleExpense:
@@ -9,6 +12,7 @@ class BaseSingleExpense:
     _description: str = None
     _date_time: datetime.datetime = None
     _currency: str = None
+    _category: TransactionType = None
 
     def parse_statement(self, filename: str):
         """
@@ -38,3 +42,12 @@ class BaseSingleExpense:
     @property
     def currency(self):
         return self._currency
+
+    @property
+    def category(self):
+        return self._category
+
+
+def parse_category(description: str):
+    if re.search("(edeka)|(aldi)|(superissimo)", description, re.IGNORECASE):
+        return TransactionType.GROCERY
