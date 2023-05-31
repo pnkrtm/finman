@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Any, Dict
 
 from src.finman.expenses.base import BaseSingleExpense
 
@@ -22,5 +22,5 @@ class MoneyWizAdapter:
 
         return url_schema
 
-    def configure(self, config: Dict):
+    def configure(self, config: Dict[str, Any]):
         self._accounts = config.get("accounts", None)

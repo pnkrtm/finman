@@ -1,11 +1,12 @@
-import os
 from collections import OrderedDict
 from typing import Any, Dict
 
 import numpy as np
 from splitwise import Category, Expense, Group, Splitwise, User
+from splitwise.exception import SplitwiseUnauthorizedException
 from splitwise.user import ExpenseUser
 
+from src.finman.exceptions.swise_exceptions import SwiseAuthorizeException
 from src.finman.expenses.base import BaseSingleExpense
 from src.finman.utils.transaction_types import TransactionType
 
@@ -19,9 +20,13 @@ class SwiseAdapter:
     _default_shares: Dict[int, float] = None  # group default shares
     _custom_shares: Dict[int, Dict[int, float]] = None  # group custom shares by transaction type
 
-    def authenticate(self):
-        self._swise_obj = Splitwise(os.getenv("SWISE_CONSUMER_KEY"), os.getenv("SWISE_API_SECRET"), api_key=os.getenv("SWISE_API_KEY"))
-        self._current_user = self._swise_obj.getCurrentUser()
+    def authenticate(self, consumer_key, consumer_secret, api_key):
+        try:
+            self._swise_obj = Splitwise(consumer_key, consumer_secret, api_key=api_key)
+            self._current_user = self._swise_obj.getCurrentUser()
+
+        except SplitwiseUnauthorizedException as e:
+            raise SwiseAuthorizeException("Problems with Splitwise authentication")
 
     def send_transaction(self, transaction: BaseSingleExpense):
         if self._current_user is None:
