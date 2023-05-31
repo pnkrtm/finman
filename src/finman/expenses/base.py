@@ -8,7 +8,7 @@ from src.finman.utils.transaction_types import TransactionType
 
 
 class BaseSingleExpense:
-    _amount: int = -1
+    _amount: float = -1
     _description: str = None
     _date_time: datetime.datetime = None
     _currency: str = None

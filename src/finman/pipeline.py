@@ -41,7 +41,15 @@ class PipelineMeta(type):
         return cls._instances[cls]
 
 
-class ProcessPipeline(metaclass=PipelineMeta):
+class ProcessPipelineContainer(dict, metaclass=PipelineMeta):
+    def __getitem__(self, key: int):
+        if key not in self.keys():
+            self[key] = _ProcessPipeline()
+
+        return dict.__getitem__(self, key)
+
+
+class _ProcessPipeline:
     _swise_adapter: SwiseAdapter = None
     _money_wiz_adapter: MoneyWizAdapter = None
     _current_single_expense: BaseSingleExpense = None

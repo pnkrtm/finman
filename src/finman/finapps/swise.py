@@ -1,3 +1,4 @@
+import datetime
 from collections import OrderedDict
 from typing import Any, Dict
 
@@ -52,12 +53,15 @@ class SwiseAdapter:
         swise_expense.setGroupId(self._current_group.getId())
 
         swise_category = Category()
-        swise_category.setId(TRANS_ID[transaction.category])
+        category_id = TRANS_ID.get(transaction.category, None)
+        swise_category.setId(category_id)
         swise_expense.setCategory(swise_category)
+        # weird bug in Splitwise API, need to add 1 more day to date of transaction
+        swise_expense.setDate((transaction.date_time + datetime.timedelta(days=1)).strftime("%Y-%m-%d"))
 
         group_users = self._current_group.getMembers()
-        if self._custom_shares is not None and TRANS_ID[transaction.category] in self._custom_shares:
-            user_shares = self._custom_shares[TRANS_ID[transaction.category]]
+        if self._custom_shares is not None and category_id in self._custom_shares:
+            user_shares = self._custom_shares[category_id]
 
         else:
             user_shares = self._default_shares
@@ -85,5 +89,13 @@ class SwiseAdapter:
         self._current_group = self._swise_obj.getGroup(group_id)
 
     def configure(self, config: Dict[Any, Any]):
+        def _convert_keys(input_dict: Dict[str, Any]):
+            return {int(key): _convert_keys(value) if isinstance(value, dict) else value for key, value in input_dict.items()}
+
         self._default_shares = config.get("default_shares", None)
+        if self._default_shares is not None:
+            self._default_shares = _convert_keys(self._default_shares)
+
         self._custom_shares = config.get("custom_shares", None)
+        if self._custom_shares is not None:
+            self._custom_shares = _convert_keys(self._custom_shares)

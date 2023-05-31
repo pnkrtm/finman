@@ -4,7 +4,7 @@ from loguru import logger
 from telegram import Update
 from telegram.ext import BaseHandler, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters
 
-from src.finman.pipeline import ProcessPipeline
+from src.finman.pipeline import ProcessPipelineContainer
 from src.finman.tg._utils import download_tmp_file
 
 CONFIGURE_START_STATE = 0
@@ -28,7 +28,8 @@ async def process_configuration(update: Update, context: ContextTypes.DEFAULT_TY
     logger.debug("Configuration started...")
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-        pipeline = ProcessPipeline()
+        user_id = update.effective_user.id
+        pipeline = ProcessPipelineContainer()[user_id]
         tmp_filename = await download_tmp_file(tmp_dir, update)
         result = pipeline.configure(filename=tmp_filename)
 

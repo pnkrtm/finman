@@ -3,7 +3,7 @@ import tempfile
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import BaseHandler, CallbackQueryHandler, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters
 
-from src.finman.pipeline import ProcessPipeline
+from src.finman.pipeline import ProcessPipelineContainer
 from src.finman.tg._utils import download_tmp_file
 
 _SWISE_PROCESSING = True
@@ -26,8 +26,9 @@ def get_statement_process_handler() -> BaseHandler:
 
 
 async def ask_swise_processing(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    user_id = update.effective_user.id
     with tempfile.TemporaryDirectory() as tmp_dir:
-        pipeline = ProcessPipeline()
+        pipeline = ProcessPipelineContainer()[user_id]
         tmp_filename = await download_tmp_file(tmp_dir, update)
         result = pipeline.read_statement(filename=tmp_filename)
 
@@ -57,7 +58,8 @@ async def process_statement_without_swise(update: Update, context: ContextTypes.
 
 
 async def _process_statement(update: Update, use_swise: bool) -> int:
-    result = ProcessPipeline().send_expenses(use_swise)
+    user_id = update.effective_user.id
+    result = ProcessPipelineContainer()[user_id].send_expenses(use_swise)
 
     if result["success"]:
         query = update.callback_query
