@@ -2,9 +2,9 @@ from datetime import datetime
 
 import PyPDF2
 
+from src.finman.exceptions.expense_exceptions import StatementParseException
 from src.finman.expenses.base import BaseSingleExpense, parse_category
 from src.finman.utils.currencies import CURRENCY
-from src.finman.exceptions.expense_exceptions import StatementParseException
 
 
 class RevolutSingleExpense(BaseSingleExpense):
@@ -24,10 +24,10 @@ class RevolutSingleExpense(BaseSingleExpense):
 
         self._date_time = datetime.strptime(trans_date, "%b %d, %Y")
 
-        if header_row.split()[-1].lower() == 'balance':
+        if header_row.split()[-1].lower() == "balance":
             amount_idx = -2
 
-        elif header_row.split()[-1].lower() == 'in':
+        elif header_row.split()[-1].lower() == "in":
             amount_idx = -1
 
         else:
