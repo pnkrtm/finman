@@ -1,19 +1,10 @@
 import os
 
-from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ConversationHandler, MessageHandler, filters
+from telegram.ext import Application
 
-from src.finman.tg.tg_utils import (
-    CONFIGURE_START_STATE,
-    START_CALLBACK_1,
-    START_CALLBACK_2,
-    START_STATE,
-    cancel_configuration,
-    handshake_greet,
-    handshake_nice,
-    process_configuration,
-    start,
-    start_configure,
-)
+from src.finman.tg.configure import get_configure_handler
+from src.finman.tg.start import get_starting_handler
+from src.finman.tg.statement_process import get_statement_process_handler
 
 TG_TOKEN = os.getenv("TG_TOKEN", None)
 
@@ -24,27 +15,13 @@ def main():
     application = Application.builder().token(TG_TOKEN).build()
 
     # Adding /start command conversation
-    application.add_handler(
-        ConversationHandler(
-            entry_points=[CommandHandler("start", start)],
-            states={
-                START_STATE: [
-                    CallbackQueryHandler(handshake_greet, pattern="^" + str(START_CALLBACK_1) + "$"),
-                    CallbackQueryHandler(handshake_nice, pattern="^" + str(START_CALLBACK_2) + "$"),
-                ]
-            },
-            fallbacks=[CommandHandler("cancel", handshake_greet)],
-        )
-    )
+    application.add_handler(get_starting_handler())
 
     # Adding /configure command conversation
-    application.add_handler(
-        ConversationHandler(
-            entry_points=[CommandHandler("start_configuration", start_configure)],
-            states={CONFIGURE_START_STATE: [MessageHandler(filters.Document.FileExtension("json"), process_configuration)]},
-            fallbacks=[CommandHandler("cancel_configuration", cancel_configuration)],
-        )
-    )
+    application.add_handler(get_configure_handler())
+
+    # Adding statement processing
+    application.add_handler(get_statement_process_handler())
 
     application.run_polling()
 
