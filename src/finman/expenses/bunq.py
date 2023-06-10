@@ -28,12 +28,12 @@ class BunqSingleExpense(BaseSingleExpense):
         amount_idx = -3
 
         self._currency = CURRENCY[row_splited[-1]]
-        self._amount = float(" ".join(row_splited[amount_idx: -1]))
+        self._amount = float("".join(row_splited[amount_idx: -1]).replace(",", "."))
 
         def _get_description(text_list: List[str]):
             description = []
             for item in text_list:
-                if text_list.count(item) == 2:
+                if text_list.count(item) == 2 and item not in description:
                     description.append(item)
 
             return " ".join(description)
