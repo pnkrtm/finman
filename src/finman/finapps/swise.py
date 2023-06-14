@@ -54,8 +54,11 @@ class SwiseAdapter:
 
         swise_category = Category()
         category_id = TRANS_ID.get(transaction.category, None)
-        swise_category.setId(category_id)
-        swise_expense.setCategory(swise_category)
+
+        if category_id is not None:
+            swise_category.setId(category_id)
+            swise_expense.setCategory(swise_category)
+
         # weird bug in Splitwise API, need to add 1 more day to date of transaction
         swise_expense.setDate((transaction.date_time + datetime.timedelta(days=1)).strftime("%Y-%m-%d"))
 
