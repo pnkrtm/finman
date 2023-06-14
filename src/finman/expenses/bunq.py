@@ -25,10 +25,10 @@ class BunqSingleExpense(BaseSingleExpense):
         trans_date = row_splited[0]
 
         self._date_time = datetime.strptime(trans_date, "%Y-%m-%d")
-        amount_idx = -3
+        amount_idx = -2
 
         self._currency = CURRENCY[row_splited[-1]]
-        self._amount = float("".join(row_splited[amount_idx: -1]).replace(",", "."))
+        self._amount = float("".join(row_splited[amount_idx]).replace(",", "."))
 
         def _get_description(text_list: List[str]):
             description = []
