@@ -55,3 +55,5 @@ class BaseSingleExpense:
 def parse_category(description: str):
     if re.search("(edeka)|(aldi)|(superissimo)", description, re.IGNORECASE):
         return TransactionType.GROCERY
+
+    return None
