@@ -1,11 +1,11 @@
 from datetime import datetime
+from typing import List
 
 import PyPDF2
 
 from src.finman.exceptions.expense_exceptions import StatementParseException
 from src.finman.expenses.base import BaseSingleExpense, parse_category
 from src.finman.utils.currencies import CURRENCY
-from typing import List
 
 
 class BunqSingleExpense(BaseSingleExpense):
@@ -38,7 +38,7 @@ class BunqSingleExpense(BaseSingleExpense):
 
             return " ".join(description)
 
-        self._description = _get_description(row_splited[2: amount_idx])
+        self._description = _get_description(row_splited[2:amount_idx])
         self._category = parse_category(self._description)
 
     @property
