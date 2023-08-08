@@ -12,7 +12,7 @@ class BunqSingleExpense(BaseSingleExpense):
     def _extract_data_from_statement(self, pdf_reader: PyPDF2.PdfReader):
         pdf_text = pdf_reader.pages[0].extract_text().split("\n")
 
-        # doesn't seem too strong
+        # doesn't seem strong enough
         header_row = [row for row in pdf_text if "description amount" in row.lower()]
 
         if len(header_row) != 1:
