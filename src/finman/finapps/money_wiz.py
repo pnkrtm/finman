@@ -10,7 +10,8 @@ class MoneyWizAdapter:
         url_schema = f"moneywiz://expense?amount={transaction.amount}"
 
         description = transaction.description.replace(" ", "%20")
-        url_schema += f"&description={description}&payee={description}"
+        date_str = transaction.date_time.strftime("%Y-%m-%d %H:%M:%S").replace(" ", "%20")
+        url_schema += f"&description={description}&payee={description}&date={date_str}"
 
         bank_name = transaction.bank_name
         currency = transaction.currency
