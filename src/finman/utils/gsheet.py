@@ -11,7 +11,7 @@ class GSheetWorker:
 
     def get_df(self, spreadsheet_id, sheet_name):
         sheet = self.service.spreadsheets()
-        range_name = f"{sheet_name}!A1:I"
+        range_name = f"{sheet_name}!A1:Z"
         result = sheet.values().get(spreadsheetId=spreadsheet_id, range=range_name).execute()
         values = result.get('values', [])
 
