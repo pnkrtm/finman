@@ -3,6 +3,12 @@ import pandas as pd
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
+# Словарь для перевода чисел в буквы
+charstr='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+chars=list(charstr)
+nums=[i for i in range(1,53)]
+orddict=dict(zip(nums, chars))
+
 
 class GSheetWorker:
     def __init__(self, credentials_file) -> None:
@@ -19,7 +25,7 @@ class GSheetWorker:
 
         return google_sheet_df
     
-    def insert_df(self, missing_records, spreadsheet_id, sheet_name):
+    def insert_df(self, missing_records: pd.DataFrame, spreadsheet_id, sheet_name):
         sheet = self.service.spreadsheets()
         new_values = missing_records.values.tolist()
 
@@ -27,7 +33,8 @@ class GSheetWorker:
             'values': new_values
         }
         
-        range_name = f"{sheet_name}!A1:L"
+        last_col = orddict[missing_records.shape[1]]
+        range_name = f"{sheet_name}!A1:{last_col}"
 
         append_result = sheet.values().append(
             spreadsheetId=spreadsheet_id,
