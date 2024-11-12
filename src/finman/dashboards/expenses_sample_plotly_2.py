@@ -9,7 +9,7 @@ from typing import List
 class DataObject:
     def __init__(self, data: pd.DataFrame):
         self._data = data
-        self._selected_idx = list(range(self.length))
+        self._selected_status = pd.Series([True] * self.length, index=self._data.index)
         self._observers = []
 
     @property
@@ -18,14 +18,18 @@ class DataObject:
 
     @property
     def selected_data(self):
-        return self._data.iloc[self._selected_idx]
+        # todo
+        # _selected_status должен учитывать изменение порядка/сортировку транзакций
+        return self._data.loc[self._selected_status]
 
     @property
     def selected_idx(self):
-        return self._selected_idx
+        return [i for i, value in enumerate(self._selected_status) if value]
 
     def set_selected_idx(self, selected_idx: List[int]):
-        self._selected_idx = selected_idx
+        # self._selected_idx = selected_idx
+        self._selected_status = pd.Series([False] * self.length, index=self._data.index)
+        self._selected_status.iloc[selected_idx] = True
 
     @property
     def length(self):
@@ -77,6 +81,7 @@ class TableWidget(Widget):
         return dash_table.DataTable(
             id='transaction_table',
             columns=[
+                {"name": "id", "id": "id"},
                 {"name": "Дата/время", "id": "date"},
                 {"name": "Описание", "id": "description"},
                 {"name": "Сумма", "id": "amount"},
@@ -89,6 +94,47 @@ class TableWidget(Widget):
             editable=True
         )
 
+
+class HierarchyCheckboxWidget(Widget):
+    def __init__(self, data_object: DataObject):
+        super().__init__(data_object)
+        self.categories = self.build_hierarchy()
+
+    def build_hierarchy(self):
+        """Создает иерархическую структуру категорий и подкатегорий."""
+        categories = {}
+        for _, row in self.data_object.data.iterrows():
+            category = row['category']
+            subcategory = row['subcategory']
+            if category not in categories:
+                categories[category] = []
+            if subcategory not in categories[category]:
+                categories[category].append(subcategory)
+        return categories
+
+    def render(self):
+        """Рендерит иерархические чекбоксы."""
+        checkboxes = []
+        for category, subcategories in self.categories.items():
+            subcategory_checks = [
+                dcc.Checklist(
+                    options=[{'label': subcategory, 'value': subcategory}],
+                    value=[],
+                    id={'type': 'subcategory-checkbox', 'category': category, 'subcategory': subcategory}
+                )
+                for subcategory in subcategories
+            ]
+            checkboxes.append(
+                html.Div([
+                    dcc.Checklist(
+                        options=[{'label': category, 'value': category}],
+                        value=[],
+                        id={'type': 'category-checkbox', 'category': category}
+                    ),
+                    html.Div(subcategory_checks, style={'margin-left': '20px'})
+                ])
+            )
+        return html.Div(checkboxes, id='hierarchy-checkbox')
 
 class WaterfallChartWidget(Widget):
     def update(self):
@@ -129,6 +175,7 @@ class AppManager:
         self.table_widget = TableWidget(self.data_object)
         self.waterfall_chart_widget = WaterfallChartWidget(self.data_object)
         self.weekly_spending_chart_widget = WeeklySpendingChartWidget(self.data_object)
+        self.hierarchy_checkbox_widget = HierarchyCheckboxWidget(self.data_object)
 
         # Настройка приложения Dash
         self.app = Dash(__name__)
@@ -143,7 +190,7 @@ class AppManager:
                 self.weekly_spending_chart_widget.render(),
             ], style={'grid-area': '2 / 2'}),
             html.Div([
-                html.Div("Заглушка для будущего виджета")
+                self.hierarchy_checkbox_widget.render(),
             ], style={'grid-area': '2 / 1'})
         ], style={
             'display': 'grid',
