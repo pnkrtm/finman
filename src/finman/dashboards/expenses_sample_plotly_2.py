@@ -7,20 +7,21 @@ from typing import List
 
 
 class DataObject:
-    def __init__(self, data: pd.DataFrame):
-        self._data = data
-        self._selected_status = pd.Series([True] * self.length, index=self._data.index)
+    def __init__(self, transactions_data: pd.DataFrame, categories_data: pd.DataFrame=None):
+        self._transactions_data = transactions_data
+        self._categories_data = categories_data
+        self._selected_status = pd.Series([True] * self.length, index=self._transactions_data.index)
         self._observers = []
 
     @property
     def data(self):
-        return self._data
+        return self._transactions_data
 
     @property
     def selected_data(self):
         # todo
         # _selected_status должен учитывать изменение порядка/сортировку транзакций
-        return self._data.loc[self._selected_status]
+        return self._transactions_data.loc[self._selected_status]
 
     @property
     def selected_idx(self):
@@ -28,12 +29,12 @@ class DataObject:
 
     def set_selected_idx(self, selected_idx: List[int]):
         # self._selected_idx = selected_idx
-        self._selected_status = pd.Series([False] * self.length, index=self._data.index)
+        self._selected_status = pd.Series([False] * self.length, index=self._transactions_data.index)
         self._selected_status.iloc[selected_idx] = True
 
     @property
     def length(self):
-        return self._data.shape[0]
+        return self._transactions_data.shape[0]
 
     def register_observer(self, observer):
         """Регистрирует виджет для отслеживания изменений."""
@@ -44,10 +45,10 @@ class DataObject:
         for observer in self._observers:
             observer.update()
 
-    def update_data(self, new_data: pd.DataFrame):
-        """Обновляет данные и оповещает виджеты."""
-        self._data = new_data
-        self.notify_observers()
+    # def update_data(self, new_data: pd.DataFrame):
+    #     """Обновляет данные и оповещает виджеты."""
+    #     self._data = new_data
+    #     self.notify_observers()
 
     def modify_data(self, func):
         """Применяет функцию модификации данных."""
@@ -113,28 +114,21 @@ class HierarchyCheckboxWidget(Widget):
         return categories
 
     def render(self):
-        """Рендерит иерархические чекбоксы."""
-        checkboxes = []
+        """Рендерит выпадающие списки для каждой категории."""
+        dropdowns = []
         for category, subcategories in self.categories.items():
-            subcategory_checks = [
-                dcc.Checklist(
-                    options=[{'label': subcategory, 'value': subcategory}],
-                    value=[],
-                    id={'type': 'subcategory-checkbox', 'category': category, 'subcategory': subcategory}
-                )
-                for subcategory in subcategories
-            ]
-            checkboxes.append(
+            dropdowns.append(
                 html.Div([
-                    dcc.Checklist(
-                        options=[{'label': category, 'value': category}],
-                        value=[],
-                        id={'type': 'category-checkbox', 'category': category}
-                    ),
-                    html.Div(subcategory_checks, style={'margin-left': '20px'})
-                ])
+                    html.Label(category),
+                    dcc.Dropdown(
+                        options=[{'label': subcat, 'value': subcat} for subcat in subcategories],
+                        value=subcategories,  # по умолчанию выбраны все подкатегории
+                        multi=True,
+                        id={'type': 'subcategory-dropdown', 'category': category}
+                    )
+                ], style={'margin-bottom': '10px'})
             )
-        return html.Div(checkboxes, id='hierarchy-checkbox')
+        return html.Div(dropdowns, id='hierarchy-dropdown')
 
 class WaterfallChartWidget(Widget):
     def update(self):
