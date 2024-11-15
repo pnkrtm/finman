@@ -55,16 +55,16 @@ def parse_operations(text):
     return df[["id", "Дата операции", "Время операции", "Сумма в валюте счета", "Описание"]]
 
 
-def extract_total_operations(statement):
+def extract_total_operations(text):
     """
     Extracts financial data from a given statement string.
 
-    :param statement: The statement containing financial data as a string.
+    :param text: The statement containing financial data as a string.
     :return: A dictionary with extracted values.
     """
     # Regex pattern to capture the segment of interest
     pattern = r"ВСЕГО ПОПОЛНЕНИЙ\nВСЕГО СПИСАНИЙ\nОСТАТОК НА(.*?)ДАТА ОПЕРАЦИИ"
-    match = re.search(pattern, statement, re.DOTALL)
+    match = re.search(pattern, text, re.DOTALL)
 
     if not match:
         raise ValueError("The specified section could not be found in the statement.")
