@@ -51,3 +51,25 @@ def parse_operations(text):
         "id", "Дата операции", "Время операции", "Сумма операции в валюте карты", "Валюта карты",
         "Сумма в валюте операции", "Валюта операции", "Описание операции", "Номер карты"
     ]]
+
+
+def extract_total_operations(text):
+    # Строгие шаблоны для поиска чисел
+    incomes_pattern = r"\n([\d\s,]+)\s*₽?\s*\nПополнения:"
+    expenses_pattern = r"\n([\d\s,]+)\s*₽?\s*\nРасходы:"
+
+    # Поиск совпадений
+    replenishment_match = re.search(incomes_pattern, text, re.DOTALL)
+    expenses_match = re.search(expenses_pattern, text, re.DOTALL)
+
+    # Очистка и преобразование данных
+    incomes = (
+        float(re.sub(r"[^\d,]", "", replenishment_match.group(1).split("\n")[-1]).replace(",", "."))
+        if replenishment_match else None
+    )
+    expenses = (
+        float(re.sub(r"[^\d,]", "", expenses_match.group(1).split("\n")[-1]).replace(",", "."))
+        if expenses_match else None
+    )
+
+    return incomes, expenses
