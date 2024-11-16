@@ -37,3 +37,19 @@ def parse_operations(text):
     df["Дата операции"] = df["Дата операции"].dt.date
 
     return df[["id", "Дата операции", "Время операции", "Сумма операции", "Документ", "Назначение платежа"]]
+
+
+def extract_total_operations(text):
+    # Регулярные выражения для извлечения значений
+    pattern_incomes = r"\nИтого зачислений за период: ([\d\s]+\.\d{2}) [₽$€¥]"
+    pattern_expenses = r"\nИтого списаний за период: ([\d\s]+\.\d{2}) [₽$€¥]"
+
+    # Поиск совпадений
+    incomes = re.search(pattern_incomes, text)
+    expenses = re.search(pattern_expenses, text)
+
+    # Результаты
+    incomes_value = float(incomes.group(1).replace(' ', '')) if incomes else None
+    expenses_value = float(expenses.group(1).replace(' ', '')) if expenses else None
+
+    return incomes_value, expenses_value
