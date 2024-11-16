@@ -1,44 +1,61 @@
+import hashlib
 import pandas as pd
 import re
 from datetime import datetime
 
 
-def parse_operations_with_check(text):
-    # Шаблон для извлечения операций, учитывающий знаки перед суммами (включая длинное тире)
+def parse_operations(text):
+    # Регулярное выражение для извлечения операций
     pattern = re.compile(
-        r"(?P<description>.+?)\n"  # Описание операции
-        r"(?P<operation_date>\d{2}\.\d{2}\.\d{4})\nв\s\d{2}:\d{2}\n"  # Дата операции
-        r"(?P<processing_date>\d{2}\.\d{2}\.\d{4})\n"  # Дата обработки
-        r"(?P<amount_operation>[+-−–]?\d[\d\xa0]*,\d{2})\s₽\n"  # Сумма в валюте операции с учётом знака
-        r"(?P<amount_esp>[+-−–]?\d[\d\xa0]*,\d{2})\s₽"  # Сумма в валюте ЭСП с учётом знака
+        r"(?P<description>.+?)\s"  # Описание операции
+        r"(?P<date>\d{2}\.\d{2}\.\d{4})\sв\s(?P<time>\d{2}:\d{2})\s"  # Дата и время операции
+        r"\d{2}\.\d{2}\.\d{4}\s"  # Пропуск даты обработки
+        r"(?P<card>\d{4})?\s*"  # Карта (если есть)
+        r"(?P<amount_operation>[+-−–]?\d[\d\xa0]*,\d{2})\s(?P<currency_operation>[₽$€¥])\s"  # Сумма в валюте операции
+        r"(?P<amount_esp>[+-−–]?\d[\d\xa0]*,\d{2})\s(?P<currency_esp>[₽$€¥])",  # Сумма в валюте ЭСП
+        re.MULTILINE
     )
 
-    operations = []
-    for match in pattern.finditer(text):
-        description = match.group("description").replace("\xa0", " ")
-        operation_date = datetime.strptime(match.group("operation_date"), "%d.%m.%Y")
+    # Функция для очистки чисел
+    def parse_amount(amount):
+        number = amount.replace("\xa0", "").replace(",", ".").replace("−", "-").replace("–", "-")
+        return float(number)
 
-        # Обработка суммы с учётом длинного тире и замены символов
-        amount_operation_str = match.group("amount_operation").replace("\xa0", "").replace(",", ".")
-        amount_esp_str = match.group("amount_esp").replace("\xa0", "").replace(",", ".")
+    # Парсим операции
+    matches = pattern.finditer(text)
 
-        # Замена длинного тире на обычный минус для корректного преобразования
-        amount_operation = float(amount_operation_str.replace("−", "-").replace("–", "-"))
-        amount_esp = float(amount_esp_str.replace("−", "-").replace("–", "-"))
-        currency = "RUB"
+    transactions = []
+    for match in matches:
+        # Извлечение данных
+        description = match.group('description').strip()
+        date_time = f"{match.group('date')} {match.group('time')}"
+        card = match.group('card').strip() if match.group('card') else None
+        operation_amount = parse_amount(match.group('amount_operation'))
+        operation_currency = match.group('currency_operation')
+        esp_amount = parse_amount(match.group('amount_esp')) 
+        esp_currency = match.group('currency_esp')
 
-        operations.append({
-            "Дата операции": operation_date,
+        transactions.append({
             "Описание операции": description,
-            "Сумма в валюте операции": amount_operation,
-            "Валюта операции": currency,
-            "Сумма в валюте ЭСП": amount_esp
+            "Время операции": datetime.strptime(date_time, "%d.%m.%Y %H:%M"),
+            "Номер карты": card,
+            "Сумма в валюте операции": operation_amount,
+            "Валюта операции": operation_currency,
+            "Сумма операции в валюте карты": esp_amount,
+            "Валюта карты": esp_currency,
         })
 
-    # Преобразование к DataFrame
-    df = pd.DataFrame(operations)
+    # Создаем DataFrame
+    df = pd.DataFrame(transactions)
 
-    return df
+    df["id"] = df["Время операции"].dt.strftime("%Y-%m-%d %H:%M:%S")
+    df["id"] = df["id"].apply(lambda x: hashlib.sha256(x.encode("utf-8")).hexdigest()[-10:])
+    df['Дата операции'] = df["Время операции"].dt.date
+
+    return df[[
+        "id", "Дата операции", "Время операции", "Сумма операции в валюте карты", "Валюта карты",
+        "Сумма в валюте операции", "Валюта операции", "Описание операции", "Номер карты"
+    ]]
 
 
 def extract_total_operations(text):
