@@ -4,6 +4,11 @@ from typing import List
 
 class TransDataObject:
     def __init__(self, transactions_data: pd.DataFrame, categories_data: pd.DataFrame):
+        """
+
+        :param transactions_data: dataframe with all transactions
+        :param categories_data: dataframe with categories and subcategories
+        """
         self._transactions_data = transactions_data
         self._categories_data = categories_data
         self._selected_status = pd.Series([True] * self.length, index=self._transactions_data.index)
