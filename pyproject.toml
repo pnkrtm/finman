@@ -7,3 +7,38 @@ remove-all-unused-imports = true
 [tool.black]
 line-length = 140
 
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+ruff = "^0.13.0"
+isort = "^6.0.1"
+pytest = "^8.4.2"
+ipywidgets = "^8.1.7"
+
+[project]
+name = "finman"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "apenkin",email = "penkin.msu@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pypdf2 (>=3.0.1,<4.0.0)",
+    "numpy (>=2.3.3,<3.0.0)",
+    "python-telegram-bot (>=22.4,<23.0)",
+    "pymupdf (>=1.26.4,<2.0.0)",
+    "pymupdfb (>=1.24.10,<2.0.0)",
+    "scikit-learn (>=1.7.2,<2.0.0)",
+    "matplotlib (>=3.10.6,<4.0.0)",
+    "pandas (>=2.3.2,<3.0.0)",
+    "google-api-python-client (>=2.182.0,<3.0.0)",
+    "google-auth-oauthlib (>=1.2.2,<2.0.0)",
+    "google-auth-httplib2 (>=0.2.0,<0.3.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
